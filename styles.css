@@ -1,0 +1,16 @@
+.chessBoard {
+    display: grid;
+    border: 1px solid black;
+    grid-template-columns: repeat(8, 50px);
+    grid-template-rows: repeat(8, 50px);
+    width: 400px;
+    margin: auto;
+}
+
+.whiteSquare {
+    background-color: white;
+}
+
+.tanSquare {
+    background-color: tan;
+}
