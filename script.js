@@ -287,13 +287,63 @@ class Queen extends ChessPiece {
 
     getAvailableMoves(board) {
         let moves = [];
-        let row = parseInt(this.position[1]);
-        let column = this.position[0];
-
+        let row =  parseInt(this.position[1]);
+        let column = convertPosition(this.position[0]);
         
-        // This shows where the piece can move on the board
+
+            // Move top-right
+        for (let i = column + 1, newRow = row + 1 ; i <= 8 && newRow <= 8; i++, newRow++) {
+            let availableSpace = convertNotation(i, newRow);
+            moves.push(availableSpace)
+            console.log("top-right", availableSpace)
+        }
+
+        // Move top-left
+        for (let i = column - 1, newRow = row + 1; i >= 1 && newRow <= 8  ; i--, newRow++) {
+            let availableSpace = convertNotation(i, newRow);
+            console.log("top-left", availableSpace)
+            moves.push(availableSpace)
+        }
+
+
+        // Move bottom-left
+        for (let i = column - 1, newRow = row - 1; i >= 1 && newRow >= 1; i--, newRow--) {
+            let availableSpace = convertNotation(i, newRow);
+            moves.push(availableSpace)
+            console.log("bottom-left", availableSpace);
+            console.log("availableSpace: ",availableSpace, "moves(bottom-left)", moves)
+        } 
+
+        // Move bottom-right
+        for (let i = column + 1, newRow = row - 1; i <= 8 && newRow >= 1; i++, newRow--) {
+            let availableSpace = convertNotation(i, newRow);
+            moves.push(availableSpace)
+            console.log("bottom-right", availableSpace);
+            console.log("availableSpace: ",availableSpace, "moves(bottom-right)", moves)
+        
+        }   
+        
+        // Move forwards
+        for (let i = row+1; i <= 8; i++) {
+            let newRow = i;
+            let availableSpace = convertNotation(column, newRow);
+            moves.push(availableSpace)
+            console.log("top-rows", i)
+        }
     
-            return moves;
+        // Move backwards
+        for (let i = row-1; i > 0; i--) {
+            let newRow = i;
+            let availableSpace = convertNotation(column, newRow);
+            moves.push(availableSpace)
+        }
+
+
+
+
+        console.log("moves (all)", moves)
+
+        return moves;
         }
     }
 
@@ -304,13 +354,27 @@ class Rook extends ChessPiece {
 
     getAvailableMoves(board) {
         let moves = [];
-        let row = parseInt(this.position[1]);
-        let column = this.position[0];
+        let row =  parseInt(this.position[1]);
+        let column = convertPosition(this.position[0]);
 
+
+            for (let i = row+1; i <= 8; i++) {
+                let newRow = i;
+                let availableSpace = convertNotation(column, newRow);
+                moves.push(availableSpace)
+                console.log("top-rows", i)
+            }
         
-        // This shows where the piece can move on the board
-    
-            return moves;
+            for (let i = row-1; i > 0; i--) {
+                let newRow = i;
+                let availableSpace = convertNotation(column, newRow);
+                moves.push(availableSpace)
+            }
+
+
+        console.log("moves", moves)
+
+        return moves;
         }
     }
 
@@ -321,13 +385,48 @@ class Bishop extends ChessPiece {
 
     getAvailableMoves(board) {
         let moves = [];
-        let row = parseInt(this.position[1]);
-        let column = this.position[0];
-
+        let row =  parseInt(this.position[1]);
+        let column = convertPosition(this.position[0]);
         
-        // This shows where the piece can move on the board
-        console.log("moves", moves);
-            return moves;
+
+            // Move top-right
+        for (let i = column + 1, newRow = row + 1 ; i <= 8 && newRow <= 8; i++, newRow++) {
+            let availableSpace = convertNotation(i, newRow);
+            moves.push(availableSpace)
+            console.log("top-right", availableSpace)
+        }
+
+        // Move top-left
+        for (let i = column - 1, newRow = row + 1; i >= 1 && newRow <= 8  ; i--, newRow++) {
+            let availableSpace = convertNotation(i, newRow);
+            console.log("top-left", availableSpace)
+            moves.push(availableSpace)
+        }
+
+
+        // Move bottom-left
+        for (let i = column - 1, newRow = row - 1; i >= 1 && newRow >= 1; i--, newRow--) {
+            let availableSpace = convertNotation(i, newRow);
+            moves.push(availableSpace)
+            console.log("bottom-left", availableSpace);
+            console.log("availableSpace: ",availableSpace, "moves(bottom-left)", moves)
+        } 
+
+        // Move bottom-right
+        for (let i = column + 1, newRow = row - 1; i <= 8 && newRow >= 1; i++, newRow--) {
+            let availableSpace = convertNotation(i, newRow);
+            moves.push(availableSpace)
+            console.log("bottom-right", availableSpace);
+            console.log("availableSpace: ",availableSpace, "moves(bottom-right)", moves)
+        
+        }    
+
+
+
+
+        console.log("moves (all)", moves)
+
+        return moves;
         }
     }
 
@@ -358,9 +457,9 @@ class Knight extends ChessPiece {
                 bottomRight: `${column+2}${row+1}`,
                 bottomLeft: `${column+2}${row+1}`,
                 leftTop: `${column+2}${row+1}`,
-                leftBottom: `${column+2}${row+1}`,
-                rightTop: `${column-2}${row-1}`,
-                rightBottom: `${column-2}${row+1}`
+                leftBottom: `${column-2}${row-1}`,
+                rightTop: `${column+2}${row-1}`,
+                rightBottom: `${column+2}${row-1}`
             }
         }
         
