@@ -1,3 +1,30 @@
+function convertPosition(input) {
+    let convertTo = typeof input === "string" ? "number" : "letter";
+    if (convertTo !== 'letter' && convertTo !== 'number') {
+        throw new Error("Invalid conversion type. Please specify 'letter' or 'number'.");
+    }
+
+    if (convertTo === 'letter') {
+        if (!Number.isInteger(input) || input < 1 || input > 8) {
+            throw new Error("Invalid number. Please enter a number between 1 and 8.");
+        }
+        return String.fromCharCode('a'.charCodeAt(0) + input - 1);
+    }
+
+    if (convertTo === 'number') {
+        if (input.length !== 1 || !/^[a-h]$/i.test(input)) {
+            throw new Error("Invalid letter. Please enter a letter between 'a' and 'h'.");
+        }
+        return input.charCodeAt(0) - 'a'.charCodeAt(0) + 1;
+    }
+}
+
+function convertNotation(column, row) {
+    
+    let letterNotation = convertPosition(column);
+    return `${letterNotation}${row}`;
+}
+
 
 class ChessBoard {
     constructor() {
@@ -167,7 +194,6 @@ class Pawn extends ChessPiece {
 
     getAvailableMoves(board) {
         let moves = [];
-        let movesObject = {};
         let row = parseInt(this.position[1]);
         let column = this.position[0];
         let square = "";
@@ -189,7 +215,7 @@ class Pawn extends ChessPiece {
             }
             
             // Remove all of the squares from move[] that are not available (based on attribute)
-            moves.forEach(move => {
+            moves.filter(move => {
                 
             });
             return moves;
@@ -203,12 +229,53 @@ class King extends ChessPiece {
 
     getAvailableMoves(board) {
         let moves = [];
-        let row = parseInt(this.position[1]);
-        let column = this.position[0];
-
+        let row =  parseInt(this.position[1]);
+        let column = convertPosition(this.position[0]);
+        
+        const directions = {
+            white: {
+                top: `${column}${row+1}`,
+                topRight: `${column+1}${row+1}`,
+                topLeft: `${column-1}${row+1}`,
+                bottom: `${column}${row-1}`,
+                bottomRight: `${column-1}${row-1}`,
+                bottomLeft: `${column-1}${row-1}`,
+                left: `${column-1}${row}`,
+                right: `${column+1}${row}`
+            },
+            black: {
+                top: `${column}${row-1}`,
+                topRight: `${column-1}${row-1}`,
+                topLeft: `${column+1}${row-1}`,
+                bottom: `${column}${row+1}`,
+                bottomRight: `${column+1}${row+1}`,
+                bottomLeft: `${column+1}${row+1}`,
+                left: `${column+1}${row}`,
+                right: `${column-1}${row}`
+            }
+        }
         
         // This shows where the piece can move on the board
-    
+            for (let direction in directions[this.color]) {
+                moves.push(directions[this.color][direction])
+            }
+
+            moves = moves.filter(move => {
+                let newColumn = move[0];
+                let newRow = move[1];
+                return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
+            })
+
+            moves = moves.map(move => {
+                let newColumn = convertPosition(parseFloat(move[0]));
+                let newRow = move[1];
+                let newMoves = [];
+                
+                newMoves.push(`${newColumn}${newRow}`);
+                return newMoves;
+            })
+            console.log("moves", moves);
+
             return moves;
         }
     }
@@ -271,12 +338,55 @@ class Knight extends ChessPiece {
 
     getAvailableMoves(board) {
         let moves = [];
-        let row = parseInt(this.position[1]);
-        let column = this.position[0];
+        let row =  parseInt(this.position[1]);
+        let column = convertPosition(this.position[0]);
 
+        const directions = {
+            white: {
+                topRight: `${column+1}${row+2}`,
+                topLeft: `${column-1}${row+2}`,
+                bottomRight: `${column-2}${row-1}`,
+                bottomLeft: `${column-2}${row-1}`,
+                leftTop: `${column-2}${row+1}`,
+                leftBottom: `${column-2}${row-1}`,
+                rightTop: `${column+2}${row+1}`,
+                rightBottom: `${column+2}${row-1}`
+            },
+            black: {
+                topRight: `${column-1}${row-2}`,
+                topLeft: `${column+1}${row-2}`,
+                bottomRight: `${column+2}${row+1}`,
+                bottomLeft: `${column+2}${row+1}`,
+                leftTop: `${column+2}${row+1}`,
+                leftBottom: `${column+2}${row+1}`,
+                rightTop: `${column-2}${row-1}`,
+                rightBottom: `${column-2}${row+1}`
+            }
+        }
         
+
         // This shows where the piece can move on the board
-    
+            for (let direction in directions[this.color]) {
+                console.log("directions[this.color][direction]", directions[this.color][direction])
+                moves.push(directions[this.color][direction])
+            }
+
+            moves = moves.filter(move => {
+                let newColumn = move[0];
+                let newRow = move[1];
+                return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
+            })
+
+            moves = moves.map(move => {
+                let newColumn = convertPosition(parseFloat(move[0]));
+                let newRow = move[1];
+                let newMoves = [];
+                
+                newMoves.push(`${newColumn}${newRow}`);
+                return newMoves;
+            })
+            console.log("moves", moves);
+
             return moves;
         }
     }
