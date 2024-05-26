@@ -7,6 +7,7 @@
     margin: auto;
 }
 
+
 .whiteSquare {
     background-color: white;
 }
@@ -15,6 +16,22 @@
     background-color: tan;
 }
 
+
 .square img.chessman {
     width: 100%;
+}
+
+
+
+.available {
+    display: flex;
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-25px, -10px);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: rgba(105, 102, 102, 0.548);
+    margin: auto;
 }
