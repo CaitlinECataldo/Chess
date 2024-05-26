@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     for (let i = 0; i < positions.length; i++) {
                     // select the square for the chess piece position
                     let square = document.querySelector(`[data-notation="${positions[i]}"]`);
-                    square.innerHTML = `<img class="chessman" src="${image}" piece="${piece}" past-moves=0 color="${color}"  >`;
+                    square.innerHTML = `<img class="chessman" src="${image}" piece="${piece}" past-moves=0 color="${color}" >`;
                     }
                 }
             }
@@ -191,41 +191,55 @@ document.addEventListener("DOMContentLoaded", function() {
                 let pastMoves = parseInt(event.target.getAttribute("past-moves"));
                 let notation = `${clickedPiece}${dataNotation}`;
                 let pieceColor = event.target.getAttribute("color");
-                let possibleMoves = allPieces[pieceColor].P.moveTo;
+                let possibleMoves = allPieces[pieceColor][clickedPiece].moveTo;
                 let row = parseInt(dataNotation[1]);
                 let column = dataNotation[0];
                 let moveTo = []
+
+                // Reset moveTo for each pawn
+                if (clickedPiece === "P") {
+                    moveTo = [];
+                }
                 
                 // Remove the "P" for pawn to match formal notation
                 clickedPiece === "P" ? pieceAbr = "" : pieceAbr = clickedPiece;    
                 
-                if (clickedPiece != "P") {
-
-                } else {
-                    if (pastMoves > 0 && clickedPiece === "P") {
-                    } else if (pastMoves === 0 && clickedPiece === "P") {
-                        moveTo.push(`${column}${row+2}`,`${column}${row+1}`);
-                        possibleMoves.push(moveTo);
-                        console.log("pawn clicked and first move to", moveTo);
-                    }
-                    
-                } 
-
-                // Remove all available move colored spots
-                document.querySelectorAll(".available").forEach(element => {
+                  // Remove all available move colored spots
+                  document.querySelectorAll(".available").forEach(element => {
                     element.classList.remove('available');
                 });
+                
+                    if (clickedPiece === "P") {
+                        if (clickedPiece === "P") {
+                            if (pieceColor==="white") {
+                                moveTo.push(`${column}${row+1}`,`${column}${row+2}`);
+                                possibleMoves.push(moveTo);
+                                console.log("pawn clicked and first move to", moveTo);
+                                // Show where the clicked piece can move
+                            } else {
+                                moveTo.push(`${column}${row-1}`,`${column}${row-2}`);
+                                possibleMoves.push(moveTo);
+                                console.log("pawn clicked and first move to", moveTo);
+                            }
 
-                // Show where the clicked piece can move
-                    for (let i = 0; i < moveTo.length; i++) {
-                        console.log("moveTo[i]: ", document.querySelector(`[data-notation="${moveTo[i]}"]`));
-                        let targetElement = document.querySelector(`[data-notation="${moveTo[i]}"]`);
-                        let newDiv = document.createElement('div');
-                        newDiv.classList.add("available");
-                        targetElement.appendChild(newDiv);
-                    }
-            }
+                            }
+                        }
+                        for (let i = 0; i < moveTo.length; i++) {
+                            console.log("moveTo[i]: ", document.querySelector(`[data-notation="${moveTo[i]}"]`));
+                            let targetElement = document.querySelector(`[data-notation="${moveTo[i]}"]`);
+                            console.log("moveTo[i]: ", moveTo[i]);
+                            let newDiv = document.createElement('div');
+                            newDiv.classList.add("available");
+                            targetElement.appendChild(newDiv);
+                        }
+                    } 
+                
+                        
+                
 
+              
+
+                
     
             // Event Listeners
             pieces.forEach(piece => (piece.addEventListener('click', movePiece)));
