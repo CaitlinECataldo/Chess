@@ -1,248 +1,289 @@
-document.addEventListener("DOMContentLoaded", function() {
-    let screenHeight = window.innerHeight;
 
-    // The board that contains all chess squares and chessmen
-    const chessBoard = document.querySelector(".chessBoard");
-    
-    // The notations used to identify square location
-    const notationLetters = ["a", "b", "c", "d", "e", "f", "g", "h"]
-    const notationNumbers = [8, 7, 6, 5, 4, 3, 2, 1]
-    
-    // An object containing all chess piece names, starting positions and images
-    const allPieces = {
-        white: {
-                K: {
-                    name: "King",
-                    image: "/chess_pieces/white-king.png",
-                    startingPosition: ["e1"],
-                    currentPosition: [],
-                    moveTo: []
-                },
-                Q: {
-                    name: "Queen",
-                    image: "/chess_pieces/white-queen.png",
-                    startingPosition: ["d1"],
-                    currentPosition: [],
-                    moveTo: []
-                },
-                R: {
-                    name: "Rook",
-                    image: "/chess_pieces/white-rook.png",
-                    startingPosition: ["a1", "h1"],
-                    currentPosition: [],
-                    moveTo: []
-                    },
-                N: {
-                    name: "Knight",
-                    image: "/chess_pieces/white-knight.png",
-                    startingPosition: ["b1", "g1"],
-                    currentPosition: [],
-                    moveTo: []
-                    },
-                B: {
-                    name: "Bishop",
-                    image: "/chess_pieces/white-bishop.png",
-                    startingPosition: ["c1", "f1"],
-                    currentPosition: [],
-                    moveTo: []
-                    },
-                P: {
-                    name: "Pawn",
-                    image: "/chess_pieces/white-pawn.png",
-                    startingPosition: ["a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2"],
-                    currentPosition: [],
-                    moveTo: []
-                }
-        },
-        black: {
-            K: {
-                name: "King",
-                image: "/chess_pieces/black-king.png",
-                startingPosition: ["e8"],
-                currentPosition: [],
-                moveTo: []
-            },
-            Q: {
-                name: "Queen",
-                image: "/chess_pieces/black-queen.png",
-                startingPosition: ["d8"],
-                currentPosition: [],
-                moveTo: []
-            },
-            R: {
-                name: "Rook",
-                image: "/chess_pieces/black-rook.png",
-                startingPosition: ["a8", "h8"],
-                currentPosition: [],
-                moveTo: []
-                },
-            N: {
-                name: "Knight",
-                image: "/chess_pieces/black-knight.png",
-                startingPosition: ["b8", "g8"],
-                currentPosition: [],
-                moveTo: []
-                },
-            B: {
-                name: "Bishop",
-                image: "/chess_pieces/black-bishop.png",
-                startingPosition: ["c8", "f8"],
-                currentPosition: [],
-                moveTo: []
-                },
-            P: {
-                name: "Pawn",
-                image: "/chess_pieces/black-pawn.png",
-                startingPosition: ["a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7"],
-                currentPosition: [],
-                moveTo: []
-            }
-    }
+class ChessBoard {
+    constructor() {
+        this.boardElement = document.querySelector(".chessBoard");
+        this.notationLetters = ["a", "b", "c", "d", "e", "f", "g", "h"];
+        this.notationNumbers = [8, 7, 6, 5, 4, 3, 2, 1];
+        this.createBoard();
     }
 
-    // An array containing the abreviations for all chessmen
-    const chessmen = {
-        K: {
-            
-        }, 
-        Q: {
+    createBoard() {
+        let allSquares = "";
 
-        }, 
-        R: {
-
-        }, 
-        N: {
-
-        }, 
-        B: {
-
-        }, 
-        P: {}
-    }
-    
-    // Appends the current move to the gameRecord and returns an index of all moves within the current game
-    const gameRecord = []
-    
-    if (!chessBoard) {
-        console.error("No element with class 'chessBoard' found.");
-    } else {
-        
-        function createChessBoard() {
-            let allSquares = "";
-    
-            // assigns a color to a square based on the color of the square in the previous column
-            function assignSquare(row, column, notation) {
+        for (let i = 0; i < 8; i++) {
+            const row = i;
+            const notationNumber = this.notationNumbers[i];
+            for (let j = 0; j < 8; j++) {
+                const column = j;
+                const notationLetter = this.notationLetters[j];
+                const notation = notationLetter + notationNumber;
                 const color = (row % 2 === 0 && column % 2 === 0) || (row % 2 !== 0 && column % 2 !== 0) ? "white" : "tan";
-                const square = `<div class="${color}Square square" data-notation="${notation}" > </div>`;
+                const square = `<div class="${color}Square square" data-notation="${notation}"> </div>`;
                 allSquares += square;
             }
-    
-    
-            for (let i = 0; i < 8; i++) {
-                const row = i;
-                const notationNumber = notationNumbers[i];
-                for (let j = 0; j < 8; j++) {
-                    const column = j;  
-                    const notationLetter = notationLetters[j];
-                    const notation = notationLetter + notationNumber;
-                    assignSquare(row, column, notation); 
-               }                     
-            }
-            chessBoard.innerHTML = allSquares;
         }
-    
-        // Populate all black and white chessmen in their starting positions
-        function spawnChessmen() {
-            for (let color in allPieces) {
-                
-                for (let piece in allPieces[color]) {
-                    const image = allPieces[color][piece].image;
-                    const positions = allPieces[color][piece].startingPosition;
-                    
-                    for (let i = 0; i < positions.length; i++) {
-                    // select the square for the chess piece position
-                    let square = document.querySelector(`[data-notation="${positions[i]}"]`);
-                    square.innerHTML = `<img class="chessman" src="${image}" piece="${piece}" past-moves=0 color="${color}" >`;
-                    }
-                }
-            }
-    
-            // Make all chessmen dragable
-            const chessman = document.querySelectorAll(".chessman");
-            chessman.forEach(piece => {
-                piece.setAttribute("draggable", true);
-                        
-            }); 
-        }
-    
-        createChessBoard();
-        spawnChessmen();
-    
-        
-       
-            // Variables for event listeners
-            let pieces = document.querySelectorAll(".chessman");
-    
-            
-            // Spawn this function for the player who's turn it is whenever they click on a chess piece
-            function movePiece(event) {
-                let dataNotation = event.target.parentElement.getAttribute("data-notation");
-                let clickedPiece = event.target.getAttribute("piece");
-                let pastMoves = parseInt(event.target.getAttribute("past-moves"));
-                let notation = `${clickedPiece}${dataNotation}`;
-                let pieceColor = event.target.getAttribute("color");
-                let possibleMoves = allPieces[pieceColor][clickedPiece].moveTo;
-                let row = parseInt(dataNotation[1]);
-                let column = dataNotation[0];
-                let moveTo = []
-
-                // Reset moveTo for each pawn
-                if (clickedPiece === "P") {
-                    moveTo = [];
-                }
-                
-                // Remove the "P" for pawn to match formal notation
-                clickedPiece === "P" ? pieceAbr = "" : pieceAbr = clickedPiece;    
-                
-                  // Remove all available move colored spots
-                  document.querySelectorAll(".available").forEach(element => {
-                    element.classList.remove('available');
-                });
-                
-                    if (clickedPiece === "P") {
-                        if (clickedPiece === "P") {
-                            if (pieceColor==="white") {
-                                moveTo.push(`${column}${row+1}`,`${column}${row+2}`);
-                                possibleMoves.push(moveTo);
-                                console.log("pawn clicked and first move to", moveTo);
-                                // Show where the clicked piece can move
-                            } else {
-                                moveTo.push(`${column}${row-1}`,`${column}${row-2}`);
-                                possibleMoves.push(moveTo);
-                                console.log("pawn clicked and first move to", moveTo);
-                            }
-
-                            }
-                        }
-                        for (let i = 0; i < moveTo.length; i++) {
-                            console.log("moveTo[i]: ", document.querySelector(`[data-notation="${moveTo[i]}"]`));
-                            let targetElement = document.querySelector(`[data-notation="${moveTo[i]}"]`);
-                            console.log("moveTo[i]: ", moveTo[i]);
-                            let newDiv = document.createElement('div');
-                            newDiv.classList.add("available");
-                            targetElement.appendChild(newDiv);
-                        }
-                    } 
-                
-                        
-                
-
-              
-
-                
-    
-            // Event Listeners
-            pieces.forEach(piece => (piece.addEventListener('click', movePiece)));
-        
+        this.boardElement.innerHTML = allSquares;
     }
-})
+
+    clearHighlights() {
+        document.querySelectorAll(".available").forEach(element => {
+            element.classList.remove('available');
+        });
+    }
+
+    highlightMoves(moves) {
+        moves.forEach(move => {
+            const square = document.querySelector(`[data-notation="${move}"]`);
+            const newDiv = document.createElement('div');
+            newDiv.classList.add("available");
+            square.appendChild(newDiv);
+        });
+    }
+}
+
+class ChessGame {
+
+    constructor() {
+    this.board = new ChessBoard();
+    this.pieces = this.createPieces();
+    this.board.createBoard(); // Add this line to create the board
+    this.renderPieces(); // Add this line to render the pieces on the board
+    this.addEventListeners();
+    }
+
+
+    createPieces() {
+    let pieces = [];
+    // Initialize pieces for both colors
+    pieces.push(new Pawn('white', 'a2'));
+    pieces.push(new Pawn('white', 'b2'));
+    pieces.push(new Pawn('white', 'c2'));
+    pieces.push(new Pawn('white', 'd2'));
+    pieces.push(new Pawn('white', 'e2'));
+    pieces.push(new Pawn('white', 'f2'));
+    pieces.push(new Pawn('white', 'g2'));
+    pieces.push(new Pawn('white', 'h2'));
+    pieces.push(new Pawn('black', 'a7'));
+    pieces.push(new Pawn('black', 'b7'));
+    pieces.push(new Pawn('black', 'c7'));
+    pieces.push(new Pawn('black', 'd7'));
+    pieces.push(new Pawn('black', 'e7'));
+    pieces.push(new Pawn('black', 'f7'));
+    pieces.push(new Pawn('black', 'g7'));
+    pieces.push(new Pawn('black', 'h7'));
+
+    
+    // Kings
+    pieces.push(new King('white', 'e1'));
+    pieces.push(new King('black', 'e8'));
+
+    // Queens
+    pieces.push(new Queen('white', 'd1'));
+    pieces.push(new Queen('black', 'd8'));
+
+    // Rooks
+    pieces.push(new Rook('white', 'a1'));
+    pieces.push(new Rook('white', 'h1'));
+    pieces.push(new Rook('black', 'a8'));
+    pieces.push(new Rook('black', 'h8'));
+
+    // Knights
+    pieces.push(new Knight('white', 'b1'));
+    pieces.push(new Knight('white', 'g1'));
+    pieces.push(new Knight('black', 'b8'));
+    pieces.push(new Knight('black', 'g8'));
+
+    // Bishops
+    pieces.push(new Bishop('white', 'c1'));
+    pieces.push(new Bishop('white', 'f1'));
+    pieces.push(new Bishop('black', 'c8'));
+    pieces.push(new Bishop('black', 'f8'));
+
+    return pieces;
+    }
+
+    renderPieces() {
+        this.pieces.forEach(piece => {
+            const square = document.querySelector(`[data-notation="${piece.position}"]`);
+            const pieceElement = document.createElement('img');
+            pieceElement.classList.add("chessman");
+            pieceElement.setAttribute("src", `/chess_pieces/${piece.color}-${piece.type.toLowerCase()}.png`);
+            pieceElement.setAttribute("piece", piece.type);
+            pieceElement.setAttribute("color", piece.color);
+            pieceElement.setAttribute("draggable", true);
+            square.appendChild(pieceElement);
+        });
+    }
+
+
+    
+    addEventListeners() {
+        document.querySelectorAll(".chessman").forEach(pieceElement => {
+            pieceElement.addEventListener('click', (event) => this.handlePieceClick(event));
+        });
+    }
+
+    
+    handlePieceClick(event) {
+        const pieceElement = event.target;
+        const pieceType = pieceElement.getAttribute("piece");
+        const pieceColor = pieceElement.getAttribute("color");
+        const piecePosition = pieceElement.parentElement.getAttribute("data-notation");
+        
+        console.log("piece clicked");
+        // Find the corresponding piece object
+        const piece = this.pieces.find(p => p.type === pieceType && p.color === pieceColor && p.position === piecePosition);
+        
+        if (piece) {
+            this.board.clearHighlights();
+            const moves = piece.getAvailableMoves(this.board);
+            this.board.highlightMoves(moves);
+        }
+    }
+}
+
+class ChessPiece {
+    constructor(type, color, position) {
+        this.type = type;
+        this.color = color;
+        this.position = position;
+        this.pastMoves = 0;
+    }
+
+    move(newPosition) {
+        this.position = newPosition;
+    }
+
+    getAvailableMoves(board) {
+        // To be implemented in subclasses
+        return [];
+    }
+}
+
+class Pawn extends ChessPiece {
+    constructor(color, position) {
+        super('Pawn', color, position)
+    }
+
+    getAvailableMoves(board) {
+        let moves = [];
+        let movesObject = {};
+        let row = parseInt(this.position[1]);
+        let column = this.position[0];
+        let square = "";
+
+        if (this.color === 'white') {
+            if (row > 2) {
+                square = `${column}${row+1}`,`${column}${row+1}`;
+                moves.push(square);
+                
+            } else {
+                moves.push(`${column}${row+1}`,`${column}${row+2}`);
+            }
+        } else {
+            if (row < 7) {
+                moves.push(`${column}${row-1}`,`${column}${row-1}`);
+            } else {
+                moves.push(`${column}${row-1}`,`${column}${row-2}`);
+                }
+            }
+            
+            // Remove all of the squares from move[] that are not available (based on attribute)
+            moves.forEach(move => {
+                
+            });
+            return moves;
+        }
+    }
+
+class King extends ChessPiece {
+    constructor(color, position) {
+        super('King', color, position)
+    }
+
+    getAvailableMoves(board) {
+        let moves = [];
+        let row = parseInt(this.position[1]);
+        let column = this.position[0];
+
+        
+        // This shows where the piece can move on the board
+    
+            return moves;
+        }
+    }
+
+class Queen extends ChessPiece {
+    constructor(color, position) {
+        super('Queen', color, position)
+    }
+
+    getAvailableMoves(board) {
+        let moves = [];
+        let row = parseInt(this.position[1]);
+        let column = this.position[0];
+
+        
+        // This shows where the piece can move on the board
+    
+            return moves;
+        }
+    }
+
+class Rook extends ChessPiece {
+    constructor(color, position) {
+        super('Rook', color, position)
+    }
+
+    getAvailableMoves(board) {
+        let moves = [];
+        let row = parseInt(this.position[1]);
+        let column = this.position[0];
+
+        
+        // This shows where the piece can move on the board
+    
+            return moves;
+        }
+    }
+
+class Bishop extends ChessPiece {
+    constructor(color, position) {
+        super('Bishop', color, position)
+    }
+
+    getAvailableMoves(board) {
+        let moves = [];
+        let row = parseInt(this.position[1]);
+        let column = this.position[0];
+
+        
+        // This shows where the piece can move on the board
+        console.log("moves", moves);
+            return moves;
+        }
+    }
+
+class Knight extends ChessPiece {
+    constructor(color, position) {
+        super('Knight', color, position)
+    }
+
+    getAvailableMoves(board) {
+        let moves = [];
+        let row = parseInt(this.position[1]);
+        let column = this.position[0];
+
+        
+        // This shows where the piece can move on the board
+    
+            return moves;
+        }
+    }
+
+
+
+// Initialize the game
+document.addEventListener("DOMContentLoaded", function() {
+new ChessGame();
+});
