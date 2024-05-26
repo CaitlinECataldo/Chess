@@ -58,12 +58,22 @@ class ChessBoard {
         });
     }
 
-    highlightMoves(moves) {
+    highlightMoves(moves, color) {
+        let blocked = false;
+        
         moves.forEach(move => {
             const square = document.querySelector(`[data-notation="${move}"]`);
-            const newDiv = document.createElement('div');
-            newDiv.classList.add("available");
-            square.appendChild(newDiv);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            console.log("occupyingColor", occupyingColor)
+            
+            if (occupyingPieces) {blocked = true}
+            if (color !== occupyingColor && !blocked ) {
+                const newDiv = document.createElement('div');
+                newDiv.classList.add("available");
+                square.appendChild(newDiv);
+            }
         });
     }
 }
@@ -164,7 +174,7 @@ class ChessGame {
         if (piece) {
             this.board.clearHighlights();
             const moves = piece.getAvailableMoves(this.board);
-            this.board.highlightMoves(moves);
+            this.board.highlightMoves(moves, piece.color);
         }
     }
 }
