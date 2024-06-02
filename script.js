@@ -25,7 +25,6 @@ function convertNotation(column, row) {
     return `${letterNotation}${row}`;
 }
 
-
 class ChessBoard {
     constructor() {
         this.boardElement = document.querySelector(".chessBoard");
@@ -75,7 +74,6 @@ class ChessBoard {
     }
 
     highlightMoves(moves, color) {
-        console.log("moves for highlighting: ", moves)
         if (moves.length > 0) {
 
             moves.forEach(move => {
@@ -103,7 +101,10 @@ class ChessGame {
     this.board.createBoard(); // Add this line to create the board
     this.renderPieces(); // Add this line to render the pieces on the board
     this.addEventListeners();
+    this.blackScore = 0;
+    this.whiteScore = 0;
     }
+
 
 
     createPieces() {
@@ -165,6 +166,7 @@ class ChessGame {
             pieceElement.setAttribute("piece", piece.type);
             pieceElement.setAttribute("color", piece.color);
             pieceElement.setAttribute("draggable", true);
+            pieceElement.setAttribute("value", piece.value);
             square.appendChild(pieceElement);
         });
     }
@@ -177,9 +179,6 @@ class ChessGame {
         });     
 
     }
-
-
-
     
     handlePieceClick(event) {
         const pieceElement = event.target;
@@ -187,21 +186,16 @@ class ChessGame {
         const pieceColor = pieceElement.getAttribute("color");
         const piecePosition = pieceElement.parentElement.getAttribute("data-notation");
         
-        console.log("piece clicked");
         // Find the corresponding piece object
         const piece = this.pieces.find(p => p.type === pieceType && p.color === pieceColor && p.position === piecePosition);
         
         if (piece) {
             let position1 = piecePosition;
             this.board.clearHighlights();
-            console.log("cleared highlights");
             const moves = piece.getAvailableMoves(this.board);
-            console.log("getting moves");
             this.board.highlightMoves(moves, piece.color);
-            console.log("highlighting moves");
             moves.forEach(move => {
                 const targetSquare = document.querySelector(`[data-notation="${move}"] .available`);
-                console.log("target square: ", targetSquare);
                 if (targetSquare) {
                     targetSquare.addEventListener('click', () => this.movePiece(piece, move));
                 }
@@ -217,43 +211,57 @@ class ChessGame {
     movePiece(piece, newPosition) {
         // Find the square where the piece was moved to
         const newSquare = document.querySelector(`[data-notation="${newPosition}"]`);
+        const rival = newSquare.querySelector(".chessman");
+        let rivalColor = null;
+
+        if (rival) {
+            rivalColor = rival.getAttribute("color");
+           
+           if (rivalColor !== piece.color) {
+            const grave = document.querySelector(`.deadPieces`).querySelector(`.${piece.color}`);
+            const rivalValue = parseFloat(rival.getAttribute("value"));
+           grave.appendChild(rival)
+           console.log(`You just won ${rivalValue} points!`);
+         
+         if (piece.color === "black") {
+            this.blackScore += rivalValue;
+            document.querySelector(`.black`).querySelector(".score").innerHTML = this.blackScore;
+         } else if (piece.color === "white") {
+            this.whiteScore += rivalValue;
+            document.querySelector(`.white`).querySelector(".score").innerHTML = this.whiteScore;
+         }
+        }
+        }
+
+
 
         // Remove the piece from its old square
         const oldSquare = document.querySelector(`[data-notation="${piece.position}"]`);
         const pieceElement = oldSquare.querySelector('.chessman');
         oldSquare.removeChild(pieceElement);
-
-        // Render the piece in its new square
-        const newPieceElement = document.createElement('img');
-        newPieceElement.classList.add("chessman");
-        newPieceElement.setAttribute("src", `/chess_pieces/${piece.color}-${piece.type.toLowerCase()}.png`);
-        newPieceElement.setAttribute("piece", piece.type);
-        newPieceElement.setAttribute("color", piece.color);
-        newPieceElement.setAttribute("draggable", true);
-        newSquare.appendChild(newPieceElement);
+        newSquare.appendChild(pieceElement);
 
         // Update the position of the piece
         piece.position = newPosition;
 
         // Clear the space move highlights from the board
-        this.board.clearHighlights(),
-        console.log("cleared highlights")
+        this.board.clearHighlights()
 
-        // Re-add event listeners for the new piece element
-        newPieceElement.addEventListener('click', (event) => (this.handlePieceClick(event)));
+        // Ensure the piece remains draggable and clickable
+        pieceElement.setAttribute("draggable", true);
+
+
     }
     
 }
 
-
-
-
 class ChessPiece {
-    constructor(type, color, position) {
+    constructor(type, color, position, value) {
         this.type = type;
         this.color = color;
         this.position = position;
         this.pastMoves = 0;
+        this.value = value;
  
     }
 
@@ -280,7 +288,6 @@ class ChessPiece {
         pieceElement.setAttribute("color", this.color);
         pieceElement.setAttribute("draggable", true);
         square.appendChild(pieceElement);
-        console.log("piece rendered");
     }
 
     getAvailableMoves(board) {
@@ -292,10 +299,10 @@ class ChessPiece {
     
 }
 
-
 class Pawn extends ChessPiece {
     constructor(color, position) {
         super('Pawn', color, position);
+        this.value = 1;
     }
 
     getAvailableMoves(board) {
@@ -325,18 +332,14 @@ class Pawn extends ChessPiece {
             return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
         });
 
-        console.log("moves: ", moves);
         return moves.map(move => convertNotation(move[0], move[1]));
     }
 }
 
-
-
-
-
 class King extends ChessPiece {
     constructor(color, position) {
-        super('King', color, position)
+        super('King', color, position);
+        this.value = null;
     }
 
     getAvailableMoves(board) {
@@ -385,8 +388,6 @@ class King extends ChessPiece {
 
             moves = newMoves;
 
-           
-            console.log("moves: ", moves);
             return moves;
         }
 
@@ -395,7 +396,8 @@ class King extends ChessPiece {
 
 class Queen extends ChessPiece {
     constructor(color, position) {
-        super('Queen', color, position)
+        super('Queen', color, position);
+        this.value = 9;
     }
 
     getAvailableMoves(board) {
@@ -530,7 +532,6 @@ class Queen extends ChessPiece {
             } 
         }
 
-        console.log("moves: ", moves);
         return moves;
         }
 
@@ -539,7 +540,8 @@ class Queen extends ChessPiece {
 
 class Rook extends ChessPiece {
     constructor(color, position) {
-        super('Rook', color, position)
+        super('Rook', color, position);
+        this.value = 5;
     }
 
     getAvailableMoves(board) {
@@ -612,7 +614,6 @@ class Rook extends ChessPiece {
     }
 
 
-            console.log("moves: ", moves);
         return moves;
         }
 
@@ -621,7 +622,8 @@ class Rook extends ChessPiece {
 
 class Bishop extends ChessPiece {
     constructor(color, position) {
-        super('Bishop', color, position)
+        super('Bishop', color, position);
+        this.value = 3;
     }
 
     getAvailableMoves(board) {
@@ -694,10 +696,6 @@ class Bishop extends ChessPiece {
         }  
 
 
-
-
-
-        console.log("moves: ", moves);
         return moves;
         }
 
@@ -705,10 +703,10 @@ class Bishop extends ChessPiece {
 
     }
 
-
 class Knight extends ChessPiece {
     constructor(color, position) {
-        super('Knight', color, position)
+        super('Knight', color, position);
+        this.value = 3;
     }
 
     getAvailableMoves(board) {
@@ -730,12 +728,9 @@ class Knight extends ChessPiece {
             }
         }
 
-        console.log("moves: ", moves);
         return moves;
     }
 }
-
-
 
 
 // Initialize the game

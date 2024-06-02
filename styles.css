@@ -15,7 +15,37 @@
     margin: auto auto 10px auto;
 }
 
+.deadPieces { 
+    width: max-content;
+    height: max-content;
+    margin:50px 20px auto auto;
+    display: grid;
+    grid-template-columns: auto;
+    grid-template-rows: 50px 15px 50px;
+    justify-content: center;
+    align-items: center;
+}
 
+.deadPieces .black, .deadPieces .white {
+    display: grid;
+    grid-template-columns: repeat(17, 23px);
+    border: solid 2px black;
+    width: 400px;
+}
+
+.deadPieces .black {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.deadPieces .white {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+.score {
+    margin: auto;
+}
 
 .whiteSquare {
     background-color: white;
@@ -26,7 +56,7 @@
 }
 
 
-.square img.chessman {
+img.chessman {
     width: 100%;
 }
 
