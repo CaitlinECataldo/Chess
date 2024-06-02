@@ -368,18 +368,19 @@ class King extends ChessPiece {
             }
 
             moves = moves.filter(move => {
-                let newColumn = move[0];
+                let newColumn = parseFloat(move[0]);
                 let newRow = move[1];
                 return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
             })
-            let newMoves = moves;
-            moves = moves.map(move => {
-                let newColumn = convertPosition(parseFloat(move[0]));
-                let newRow = move[1];
-                newMoves.push(`${newColumn}${newRow}`);
-                return newMoves;
+
+            let newMoves = [];
+            moves.forEach(move => {
+                newMoves.push(convertNotation(parseFloat(move[0]), parseFloat(move[1])));
             })
-            moves = [];
+
+            moves = newMoves;
+
+           
             console.log("moves: ", moves);
             return moves;
         }
@@ -508,7 +509,7 @@ class Queen extends ChessPiece {
             }         
         }
 
-        // Move top-left
+        // Move left
         for (let i = column - 1, newRow = row; i >= 1 && newRow <= 8  ; i--) {
             let color = this.color;
             let availableSpace = convertNotation(i, newRow);
@@ -542,17 +543,68 @@ class Rook extends ChessPiece {
         let column = convertPosition(this.position[0]);
 
 
-            for (let i = row+1; i <= 8; i++) {
-                let newRow = i;
-                let availableSpace = convertNotation(column, newRow);
-                moves.push(availableSpace)
-            }
+    // Move forwards
+    for (let i = row+1; i <= 8; i++) {
+        let color = this.color;
+        let newRow = i;
+        let availableSpace = convertNotation(column, newRow);
+
+        const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+        const occupyingPieces = square.querySelector('.chessman');
+        let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+        if (occupyingPieces) break;
+        if (color !== occupyingColor && !occupyingPieces ) {
+            moves.push(availableSpace);
+        } 
+    }
+
+    // Move backwards
+    for (let i = row-1; i > 0; i--) {
+        let color = this.color;
+        let newRow = i;
+        let availableSpace = convertNotation(column, newRow);
+
+        const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+        const occupyingPieces = square.querySelector('.chessman');
+        let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+        if (occupyingPieces) break;
+        if (color !== occupyingColor && !occupyingPieces ) {
+            moves.push(availableSpace);
+        } 
+    }
+
+     // Move right
+    for (let i = column + 1, newRow = row; i <= 8; i++) {
+        let color = this.color;
+        let availableSpace = convertNotation(i, newRow);
+
+        const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+        const occupyingPieces = square.querySelector('.chessman');
+        let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+        if (occupyingPieces) break;
+        if (color !== occupyingColor && !occupyingPieces ) {
+            moves.push(availableSpace);
+        }         
+    }
+
+    // Move left
+    for (let i = column - 1, newRow = row; i >= 1 && newRow <= 8  ; i--) {
+        let color = this.color;
+        let availableSpace = convertNotation(i, newRow);
+
+        const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+        const occupyingPieces = square.querySelector('.chessman');
+        let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
         
-            for (let i = row-1; i > 0; i--) {
-                let newRow = i;
-                let availableSpace = convertNotation(column, newRow);
-                moves.push(availableSpace)
-            }
+        if (occupyingPieces) break;
+        if (color !== occupyingColor && !occupyingPieces ) {
+            moves.push(availableSpace);
+        } 
+    }
 
 
             console.log("moves: ", moves);
@@ -573,31 +625,68 @@ class Bishop extends ChessPiece {
         let column = convertPosition(this.position[0]);
         
 
-            // Move top-right
+                    // Move top-right
         for (let i = column + 1, newRow = row + 1 ; i <= 8 && newRow <= 8; i++, newRow++) {
+            let color = this.color;
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace)
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            }         
         }
 
         // Move top-left
         for (let i = column - 1, newRow = row + 1; i >= 1 && newRow <= 8  ; i--, newRow++) {
+            let color = this.color;
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace)
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
         }
 
 
         // Move bottom-left
         for (let i = column - 1, newRow = row - 1; i >= 1 && newRow >= 1; i--, newRow--) {
+            let color = this.color;
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace)
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
         } 
 
         // Move bottom-right
         for (let i = column + 1, newRow = row - 1; i <= 8 && newRow >= 1; i++, newRow--) {
+
+            let color = this.color;
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace)
-        
-        }    
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
+        }  
 
 
 
@@ -646,26 +735,26 @@ class Knight extends ChessPiece {
         
 
         // This shows where the piece can move on the board
-            for (let direction in directions[this.color]) {
-                moves.push(directions[this.color][direction])
-            }
+        for (let direction in directions[this.color]) {
+            moves.push(directions[this.color][direction])
+        }
 
-            moves = moves.filter(move => {
-                let newColumn = move[0];
-                let newRow = move[1];
-                return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
-            })
+        moves = moves.filter(move => {
+            let newColumn = parseFloat(move[0]);
+            let newRow = move[1];
+            return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
+        })
 
-            moves = moves.map(move => {
-                let newColumn = convertPosition(parseFloat(move[0]));
-                let newRow = move[1];
-                let newMoves = [];
-                
-                newMoves.push(`${newColumn}${newRow}`);
-                return newMoves;
-            })
-            console.log("moves: ", moves);
-            return moves;
+        let newMoves = [];
+        moves.forEach(move => {
+            newMoves.push(convertNotation(parseFloat(move[0]), parseFloat(move[1])));
+        })
+
+        moves = newMoves;
+
+       
+        console.log("moves: ", moves);
+        return moves;
         }
 
 
