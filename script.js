@@ -292,38 +292,43 @@ class ChessPiece {
     
 }
 
+
 class Pawn extends ChessPiece {
     constructor(color, position) {
         super('Pawn', color, position);
-
-
     }
 
     getAvailableMoves(board) {
         let moves = [];
         let row = parseInt(this.position[1]);
-        let column = this.position[0];
-        let square = "";
+        let column = convertPosition(this.position[0]);
 
         if (this.color === 'white') {
-            if (row > 2) {
-                square = `${column}${row+1}`,`${column}${row+1}`;
-                moves.push(square);
-                
+            if (row === 2) {
+                moves.push([column, row + 1]);
+                moves.push([column, row + 2]);
             } else {
-                moves.push(`${column}${row+1}`,`${column}${row+2}`);
+                moves.push([column, row + 1]);
             }
         } else {
-            if (row < 7) {
-                moves.push(`${column}${row-1}`,`${column}${row-1}`);
+            if (row === 7) {
+                moves.push([column, row - 1]);
+                moves.push([column, row - 2]);
             } else {
-                moves.push(`${column}${row-1}`,`${column}${row-2}`);
-                }
+                moves.push([column, row - 1]);
             }
-            console.log("moves: ", moves);
-            return moves;
         }
+
+        moves = moves.filter(move => {
+            let newColumn = move[0];
+            let newRow = move[1];
+            return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
+        });
+
+        console.log("moves: ", moves);
+        return moves.map(move => convertNotation(move[0], move[1]));
     }
+}
 
 
 
@@ -700,6 +705,7 @@ class Bishop extends ChessPiece {
 
     }
 
+
 class Knight extends ChessPiece {
     constructor(color, position) {
         super('Knight', color, position)
@@ -707,58 +713,28 @@ class Knight extends ChessPiece {
 
     getAvailableMoves(board) {
         let moves = [];
-        let row =  parseInt(this.position[1]);
+        let row = parseInt(this.position[1]);
         let column = convertPosition(this.position[0]);
 
-        const directions = {
-            white: {
-                topRight: `${column+1}${row+2}`,
-                topLeft: `${column-1}${row+2}`,
-                bottomRight: `${column-2}${row-1}`,
-                bottomLeft: `${column-2}${row-1}`,
-                leftTop: `${column-2}${row+1}`,
-                leftBottom: `${column-2}${row-1}`,
-                rightTop: `${column+2}${row+1}`,
-                rightBottom: `${column+2}${row-1}`
-            },
-            black: {
-                topRight: `${column-1}${row-2}`,
-                topLeft: `${column+1}${row-2}`,
-                bottomRight: `${column+2}${row+1}`,
-                bottomLeft: `${column+2}${row+1}`,
-                leftTop: `${column+2}${row+1}`,
-                leftBottom: `${column-2}${row-1}`,
-                rightTop: `${column+2}${row-1}`,
-                rightBottom: `${column+2}${row-1}`
+        const offsets = [
+            [-2, -1], [-2, 1], [2, -1], [2, 1],
+            [-1, -2], [-1, 2], [1, -2], [1, 2]
+        ];
+
+        for (let offset of offsets) {
+            let newColumn = column + offset[0];
+            let newRow = row + offset[1];
+
+            if (newRow >= 1 && newRow <= 8 && newColumn >= 1 && newColumn <= 8) {
+                moves.push(convertNotation(newColumn, newRow));
             }
         }
-        
 
-        // This shows where the piece can move on the board
-        for (let direction in directions[this.color]) {
-            moves.push(directions[this.color][direction])
-        }
-
-        moves = moves.filter(move => {
-            let newColumn = parseFloat(move[0]);
-            let newRow = move[1];
-            return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
-        })
-
-        let newMoves = [];
-        moves.forEach(move => {
-            newMoves.push(convertNotation(parseFloat(move[0]), parseFloat(move[1])));
-        })
-
-        moves = newMoves;
-
-       
         console.log("moves: ", moves);
         return moves;
-        }
-
-
     }
+}
+
 
 
 
