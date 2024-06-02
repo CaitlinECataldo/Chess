@@ -37,16 +37,32 @@ class ChessBoard {
     createBoard() {
         let allSquares = "";
 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 9; i++) {
             const row = i;
-            const notationNumber = this.notationNumbers[i];
-            for (let j = 0; j < 8; j++) {
+            const notationNumber = this.notationNumbers[i-1];
+            const labelNumber = this.notationNumbers[i];
+            for (let j = 0; j < 9; j++) {
                 const column = j;
-                const notationLetter = this.notationLetters[j];
+                const notationLetter = this.notationLetters[j-1];
+                const labelLetter = this.notationLetters[j];
                 const notation = notationLetter + notationNumber;
-                const color = (row % 2 === 0 && column % 2 === 0) || (row % 2 !== 0 && column % 2 !== 0) ? "white" : "tan";
-                const square = `<div class="${color}Square square" data-notation="${notation}"> </div>`;
-                allSquares += square;
+                const label = (row === 0 || column === 0) ? true : false
+                const color = (row % 2 === 0 && column % 2 === 0) || (row % 2 !== 0 && column % 2 !== 0) || label ? "white" : "tan";
+                let square = "";
+
+                if (label && row < 9 && column < 9) {
+                    if (row === 0 && column >= 1) {
+                        square = `<div class="columnLabel" row="${row}" column="${column}">${notationLetter}</div>`;
+                    } else if (column === 0 && row >= 1) {
+                        square = `<div class="rowLabel" row="${row}" column="${column}">${notationNumber}</div>`;
+                    } else {
+                        square = `<div class="label" row="${row}" column="${column}"></div>`;
+                    }
+                } else if( row > 0 && column > 0) {
+                    square = `<div class="${color}Square square" row="${row}" column="${column}" data-notation="${notation}"> </div>`;
+                }
+                
+                allSquares += square;                
             }
         }
         this.boardElement.innerHTML = allSquares;
@@ -66,7 +82,6 @@ class ChessBoard {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            console.log("occupyingColor", occupyingColor)
             
             if (occupyingPieces) {blocked = true}
             if (color !== occupyingColor && !blocked ) {
@@ -157,8 +172,11 @@ class ChessGame {
     addEventListeners() {
         document.querySelectorAll(".chessman").forEach(pieceElement => {
             pieceElement.addEventListener('click', (event) => this.handlePieceClick(event));
-        });
+        });     
+
     }
+
+
 
     
     handlePieceClick(event) {
@@ -172,12 +190,60 @@ class ChessGame {
         const piece = this.pieces.find(p => p.type === pieceType && p.color === pieceColor && p.position === piecePosition);
         
         if (piece) {
+            let position1 = piecePosition;
             this.board.clearHighlights();
+            console.log("cleared highlights");
             const moves = piece.getAvailableMoves(this.board);
+            console.log("getting moves");
             this.board.highlightMoves(moves, piece.color);
+            console.log("highlighting moves");
+            moves.forEach(move => {
+                const targetSquare = document.querySelector(`[data-notation="${move}"] .available`);
+                if (targetSquare) {
+                    targetSquare.addEventListener('click', () => this.movePiece(piece, move));
+                }
+            });
+ 
         }
+
+        
+
+    
     }
+
+    movePiece(piece, newPosition) {
+        // Find the square where the piece was moved to
+        const newSquare = document.querySelector(`[data-notation="${newPosition}"]`);
+
+        // Remove the piece from its old square
+        const oldSquare = document.querySelector(`[data-notation="${piece.position}"]`);
+        const pieceElement = oldSquare.querySelector('.chessman');
+        oldSquare.removeChild(pieceElement);
+
+        // Render the piece in its new square
+        const newPieceElement = document.createElement('img');
+        newPieceElement.classList.add("chessman");
+        newPieceElement.setAttribute("src", `/chess_pieces/${piece.color}-${piece.type.toLowerCase()}.png`);
+        newPieceElement.setAttribute("piece", piece.type);
+        newPieceElement.setAttribute("color", piece.color);
+        newPieceElement.setAttribute("draggable", true);
+        newSquare.appendChild(newPieceElement);
+
+        // Update the position of the piece
+        piece.position = newPosition;
+
+        // Clear the space move highlights from the board
+        this.board.clearHighlights(),
+        console.log("cleared highlights")
+
+        // Re-add event listeners for the new piece element
+        newPieceElement.addEventListener('click', (event) => (this.handlePieceClick(event)));
+    }
+    
 }
+
+
+
 
 class ChessPiece {
     constructor(type, color, position) {
@@ -185,21 +251,49 @@ class ChessPiece {
         this.color = color;
         this.position = position;
         this.pastMoves = 0;
+ 
     }
 
     move(newPosition) {
+
         this.position = newPosition;
+        this.render();
+    }
+
+
+
+    render() {
+        // Find the corresponding square on the board
+        const square = document.querySelector(`[data-notation="${this.position}"]`);
+
+        // Clear the square
+        square.innerHTML = '';
+
+        // Render the piece on the new square
+        const pieceElement = document.createElement('img');
+        pieceElement.classList.add("chessman");
+        pieceElement.setAttribute("src", `/chess_pieces/${this.color}-${this.type.toLowerCase()}.png`);
+        pieceElement.setAttribute("piece", this.type);
+        pieceElement.setAttribute("color", this.color);
+        pieceElement.setAttribute("draggable", true);
+        square.appendChild(pieceElement);
+        console.log("piece rendered");
     }
 
     getAvailableMoves(board) {
         // To be implemented in subclasses
         return [];
     }
+
+
+    
 }
 
 class Pawn extends ChessPiece {
     constructor(color, position) {
-        super('Pawn', color, position)
+        super('Pawn', color, position);
+
+
     }
 
     getAvailableMoves(board) {
@@ -223,14 +317,14 @@ class Pawn extends ChessPiece {
                 moves.push(`${column}${row-1}`,`${column}${row-2}`);
                 }
             }
-            
-            // Remove all of the squares from move[] that are not available (based on attribute)
-            moves.filter(move => {
-                
-            });
+            console.log("moves: ", moves);
             return moves;
         }
     }
+
+
+
+
 
 class King extends ChessPiece {
     constructor(color, position) {
@@ -275,19 +369,19 @@ class King extends ChessPiece {
                 let newRow = move[1];
                 return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
             })
-
+            let newMoves = moves;
             moves = moves.map(move => {
                 let newColumn = convertPosition(parseFloat(move[0]));
                 let newRow = move[1];
-                let newMoves = [];
-                
                 newMoves.push(`${newColumn}${newRow}`);
                 return newMoves;
             })
-            console.log("moves", moves);
-
+            moves = [];
+            console.log("moves: ", moves);
             return moves;
         }
+
+
     }
 
 class Queen extends ChessPiece {
@@ -304,32 +398,26 @@ class Queen extends ChessPiece {
             // Move top-right
         for (let i = column + 1, newRow = row + 1 ; i <= 8 && newRow <= 8; i++, newRow++) {
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace)
-            console.log("top-right", availableSpace)
+            moves.push(availableSpace);
         }
 
         // Move top-left
         for (let i = column - 1, newRow = row + 1; i >= 1 && newRow <= 8  ; i--, newRow++) {
             let availableSpace = convertNotation(i, newRow);
-            console.log("top-left", availableSpace)
-            moves.push(availableSpace)
+            moves.push(availableSpace);
         }
 
 
         // Move bottom-left
         for (let i = column - 1, newRow = row - 1; i >= 1 && newRow >= 1; i--, newRow--) {
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace)
-            console.log("bottom-left", availableSpace);
-            console.log("availableSpace: ",availableSpace, "moves(bottom-left)", moves)
+            moves.push(availableSpace);
         } 
 
         // Move bottom-right
         for (let i = column + 1, newRow = row - 1; i <= 8 && newRow >= 1; i++, newRow--) {
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace)
-            console.log("bottom-right", availableSpace);
-            console.log("availableSpace: ",availableSpace, "moves(bottom-right)", moves)
+            moves.push(availableSpace);
         
         }   
         
@@ -337,24 +425,20 @@ class Queen extends ChessPiece {
         for (let i = row+1; i <= 8; i++) {
             let newRow = i;
             let availableSpace = convertNotation(column, newRow);
-            moves.push(availableSpace)
-            console.log("top-rows", i)
+            moves.push(availableSpace);
         }
     
         // Move backwards
         for (let i = row-1; i > 0; i--) {
             let newRow = i;
             let availableSpace = convertNotation(column, newRow);
-            moves.push(availableSpace)
+            moves.push(availableSpace);
         }
-
-
-
-
-        console.log("moves (all)", moves)
-
+        console.log("moves: ", moves);
         return moves;
         }
+
+
     }
 
 class Rook extends ChessPiece {
@@ -372,7 +456,6 @@ class Rook extends ChessPiece {
                 let newRow = i;
                 let availableSpace = convertNotation(column, newRow);
                 moves.push(availableSpace)
-                console.log("top-rows", i)
             }
         
             for (let i = row-1; i > 0; i--) {
@@ -382,10 +465,11 @@ class Rook extends ChessPiece {
             }
 
 
-        console.log("moves", moves)
-
+            console.log("moves: ", moves);
         return moves;
         }
+
+
     }
 
 class Bishop extends ChessPiece {
@@ -403,13 +487,11 @@ class Bishop extends ChessPiece {
         for (let i = column + 1, newRow = row + 1 ; i <= 8 && newRow <= 8; i++, newRow++) {
             let availableSpace = convertNotation(i, newRow);
             moves.push(availableSpace)
-            console.log("top-right", availableSpace)
         }
 
         // Move top-left
         for (let i = column - 1, newRow = row + 1; i >= 1 && newRow <= 8  ; i--, newRow++) {
             let availableSpace = convertNotation(i, newRow);
-            console.log("top-left", availableSpace)
             moves.push(availableSpace)
         }
 
@@ -418,26 +500,25 @@ class Bishop extends ChessPiece {
         for (let i = column - 1, newRow = row - 1; i >= 1 && newRow >= 1; i--, newRow--) {
             let availableSpace = convertNotation(i, newRow);
             moves.push(availableSpace)
-            console.log("bottom-left", availableSpace);
-            console.log("availableSpace: ",availableSpace, "moves(bottom-left)", moves)
         } 
 
         // Move bottom-right
         for (let i = column + 1, newRow = row - 1; i <= 8 && newRow >= 1; i++, newRow--) {
             let availableSpace = convertNotation(i, newRow);
             moves.push(availableSpace)
-            console.log("bottom-right", availableSpace);
-            console.log("availableSpace: ",availableSpace, "moves(bottom-right)", moves)
         
         }    
 
 
 
 
-        console.log("moves (all)", moves)
 
+        console.log("moves: ", moves);
         return moves;
         }
+
+
+
     }
 
 class Knight extends ChessPiece {
@@ -476,7 +557,6 @@ class Knight extends ChessPiece {
 
         // This shows where the piece can move on the board
             for (let direction in directions[this.color]) {
-                console.log("directions[this.color][direction]", directions[this.color][direction])
                 moves.push(directions[this.color][direction])
             }
 
@@ -494,10 +574,11 @@ class Knight extends ChessPiece {
                 newMoves.push(`${newColumn}${newRow}`);
                 return newMoves;
             })
-            console.log("moves", moves);
-
+            console.log("moves: ", moves);
             return moves;
         }
+
+
     }
 
 

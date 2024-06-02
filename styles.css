@@ -1,12 +1,20 @@
 .chessBoard {
     display: grid;
-    border: 1px solid black;
-    grid-template-columns: repeat(8, 50px);
-    grid-template-rows: repeat(8, 50px);
-    width: 400px;
-    height: 400px;
+    grid-template-columns: repeat(9, 50px);
+    grid-template-rows: repeat(9, 50px);
+    width: max-content;
+    height: max-content;
     margin: auto;
 }
+
+.rowLabel {
+    margin: auto 10px auto auto;
+}
+
+.columnLabel {
+    margin: auto auto 10px auto;
+}
+
 
 
 .whiteSquare {
