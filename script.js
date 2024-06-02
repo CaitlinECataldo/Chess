@@ -46,11 +46,11 @@ class ChessBoard {
                 const notationLetter = this.notationLetters[j-1];
                 const labelLetter = this.notationLetters[j];
                 const notation = notationLetter + notationNumber;
-                const label = (row === 0 || column === 0) ? true : false
-                const color = (row % 2 === 0 && column % 2 === 0) || (row % 2 !== 0 && column % 2 !== 0) || label ? "white" : "tan";
+                const isLabel = (row === 0 || column === 0) ? true : false
+                const color = (row % 2 === 0 && column % 2 === 0) || (row % 2 !== 0 && column % 2 !== 0) || isLabel ? "white" : "tan";
                 let square = "";
 
-                if (label && row < 9 && column < 9) {
+                if (isLabel && row < 9 && column < 9) {
                     if (row === 0 && column >= 1) {
                         square = `<div class="columnLabel" row="${row}" column="${column}">${notationLetter}</div>`;
                     } else if (column === 0 && row >= 1) {
@@ -75,21 +75,23 @@ class ChessBoard {
     }
 
     highlightMoves(moves, color) {
-        let blocked = false;
-        
-        moves.forEach(move => {
-            const square = document.querySelector(`[data-notation="${move}"]`);
+        console.log("moves for highlighting: ", moves)
+        if (moves.length > 0) {
 
-            const occupyingPieces = square.querySelector('.chessman');
-            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            moves.forEach(move => {
+                const square = document.querySelector(`[data-notation="${move}"]`);
+                const occupyingPieces = square.querySelector('.chessman');
+                let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
             
-            if (occupyingPieces) {blocked = true}
-            if (color !== occupyingColor && !blocked ) {
-                const newDiv = document.createElement('div');
-                newDiv.classList.add("available");
-                square.appendChild(newDiv);
-            }
-        });
+                if ( !occupyingPieces || color !== occupyingColor) {
+                    const newDiv = document.createElement('div');
+                    newDiv.classList.add("available");
+                    square.appendChild(newDiv);
+                }
+                
+            });
+        }
+
     }
 }
 
@@ -199,6 +201,7 @@ class ChessGame {
             console.log("highlighting moves");
             moves.forEach(move => {
                 const targetSquare = document.querySelector(`[data-notation="${move}"] .available`);
+                console.log("target square: ", targetSquare);
                 if (targetSquare) {
                     targetSquare.addEventListener('click', () => this.movePiece(piece, move));
                 }
@@ -397,43 +400,130 @@ class Queen extends ChessPiece {
 
             // Move top-right
         for (let i = column + 1, newRow = row + 1 ; i <= 8 && newRow <= 8; i++, newRow++) {
+            let color = this.color;
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace);
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            }         
         }
 
         // Move top-left
         for (let i = column - 1, newRow = row + 1; i >= 1 && newRow <= 8  ; i--, newRow++) {
+            let color = this.color;
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace);
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
         }
 
 
         // Move bottom-left
         for (let i = column - 1, newRow = row - 1; i >= 1 && newRow >= 1; i--, newRow--) {
+            let color = this.color;
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace);
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
         } 
 
         // Move bottom-right
         for (let i = column + 1, newRow = row - 1; i <= 8 && newRow >= 1; i++, newRow--) {
+
+            let color = this.color;
             let availableSpace = convertNotation(i, newRow);
-            moves.push(availableSpace);
-        
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
         }   
         
         // Move forwards
         for (let i = row+1; i <= 8; i++) {
+            let color = this.color;
             let newRow = i;
             let availableSpace = convertNotation(column, newRow);
-            moves.push(availableSpace);
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
         }
     
         // Move backwards
         for (let i = row-1; i > 0; i--) {
+            let color = this.color;
             let newRow = i;
             let availableSpace = convertNotation(column, newRow);
-            moves.push(availableSpace);
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
         }
+
+         // Move right
+        for (let i = column + 1, newRow = row; i <= 8; i++) {
+            let color = this.color;
+            let availableSpace = convertNotation(i, newRow);
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            }         
+        }
+
+        // Move top-left
+        for (let i = column - 1, newRow = row; i >= 1 && newRow <= 8  ; i--) {
+            let color = this.color;
+            let availableSpace = convertNotation(i, newRow);
+
+            const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+
+            const occupyingPieces = square.querySelector('.chessman');
+            let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
+            
+            if (occupyingPieces) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } 
+        }
+
         console.log("moves: ", moves);
         return moves;
         }
