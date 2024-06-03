@@ -309,6 +309,7 @@ class Pawn extends ChessPiece {
         let moves = [];
         let row = parseInt(this.position[1]);
         let column = convertPosition(this.position[0]);
+        let targetLocation = "";
 
         if (this.color === 'white') {
             if (row === 2) {
@@ -332,6 +333,40 @@ class Pawn extends ChessPiece {
             return newRow > 0 && newRow <= 8 && newColumn > 0 && newColumn <= 8;
         });
 
+                // Filter out moves that have a piece in front
+                moves = moves.filter(move => {
+                    let newColumn = move[0];
+                    let newRow = move[1];
+                    let availableSpace = convertNotation(newColumn, newRow);
+                    const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+                    const occupyingPieces = square.querySelector('.chessman');
+                    return occupyingPieces === null;
+                });
+
+                // Check and include diagonal captures
+    let leftDiagonal = this.color === 'white' ? [column - 1, row + 1] : [column - 1, row - 1];
+    let rightDiagonal = this.color === 'white' ? [column + 1, row + 1] : [column + 1, row - 1];
+
+    // Include left diagonal if it's a valid capture
+    if (leftDiagonal[0] > 0 && leftDiagonal[0] <= 8) {
+        let availableSpace = convertNotation(leftDiagonal[0], leftDiagonal[1]);
+        const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+        const occupyingPieces = square.querySelector('.chessman');
+        if (occupyingPieces && occupyingPieces.getAttribute('color') !== this.color) {
+            moves.push(leftDiagonal);
+        }
+    }
+
+    // Include right diagonal if it's a valid capture
+    if (rightDiagonal[0] > 0 && rightDiagonal[0] <= 8) {
+        let availableSpace = convertNotation(rightDiagonal[0], rightDiagonal[1]);
+        const square = document.querySelector(`[data-notation="${availableSpace}"]`);
+        const occupyingPieces = square.querySelector('.chessman');
+        if (occupyingPieces && occupyingPieces.getAttribute('color') !== this.color) {
+            moves.push(rightDiagonal);
+        }
+    }
+
         return moves.map(move => convertNotation(move[0], move[1]));
     }
 }
@@ -353,7 +388,7 @@ class King extends ChessPiece {
                 topRight: `${column+1}${row+1}`,
                 topLeft: `${column-1}${row+1}`,
                 bottom: `${column}${row-1}`,
-                bottomRight: `${column-1}${row-1}`,
+                bottomRight: `${column+1}${row-1}`,
                 bottomLeft: `${column-1}${row-1}`,
                 left: `${column-1}${row}`,
                 right: `${column+1}${row}`
@@ -392,6 +427,9 @@ class King extends ChessPiece {
         }
 
 
+    
+
+
     }
 
 class Queen extends ChessPiece {
@@ -415,26 +453,31 @@ class Queen extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            }         
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }      
         }
 
         // Move top-left
         for (let i = column - 1, newRow = row + 1; i >= 1 && newRow <= 8  ; i--, newRow++) {
-            let color = this.color;
+                       let color = this.color;
             let availableSpace = convertNotation(i, newRow);
 
             const square = document.querySelector(`[data-notation="${availableSpace}"]`);
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }  
         }
 
 
@@ -447,10 +490,13 @@ class Queen extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }  
         } 
 
         // Move bottom-right
@@ -463,10 +509,13 @@ class Queen extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }  
         }   
         
         // Move forwards
@@ -479,10 +528,13 @@ class Queen extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }  
         }
     
         // Move backwards
@@ -495,10 +547,13 @@ class Queen extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }  
         }
 
          // Move right
@@ -510,10 +565,13 @@ class Queen extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            }         
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }      
         }
 
         // Move left
@@ -526,10 +584,13 @@ class Queen extends ChessPiece {
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
             
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }      
         }
 
         return moves;
@@ -560,10 +621,13 @@ class Rook extends ChessPiece {
 
         const occupyingPieces = square.querySelector('.chessman');
         let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-        if (occupyingPieces) break;
+        if (occupyingColor === this.color) break;
         if (color !== occupyingColor && !occupyingPieces ) {
             moves.push(availableSpace);
-        } 
+        } else if (color !== occupyingColor && occupyingPieces) {
+            moves.push(availableSpace);
+            break;
+        }      
     }
 
     // Move backwards
@@ -576,10 +640,13 @@ class Rook extends ChessPiece {
 
         const occupyingPieces = square.querySelector('.chessman');
         let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-        if (occupyingPieces) break;
+        if (occupyingColor === this.color) break;
         if (color !== occupyingColor && !occupyingPieces ) {
             moves.push(availableSpace);
-        } 
+        } else if (color !== occupyingColor && occupyingPieces) {
+            moves.push(availableSpace);
+            break;
+        }      
     }
 
      // Move right
@@ -591,10 +658,13 @@ class Rook extends ChessPiece {
 
         const occupyingPieces = square.querySelector('.chessman');
         let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-        if (occupyingPieces) break;
-        if (color !== occupyingColor && !occupyingPieces ) {
-            moves.push(availableSpace);
-        }         
+        if (occupyingColor === this.color) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }              
     }
 
     // Move left
@@ -607,13 +677,14 @@ class Rook extends ChessPiece {
         const occupyingPieces = square.querySelector('.chessman');
         let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
         
-        if (occupyingPieces) break;
-        if (color !== occupyingColor && !occupyingPieces ) {
-            moves.push(availableSpace);
-        } 
+        if (occupyingColor === this.color) break;
+            if (color !== occupyingColor && !occupyingPieces ) {
+                moves.push(availableSpace);
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }      
     }
-
-
         return moves;
         }
 
@@ -641,10 +712,13 @@ class Bishop extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            }         
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }      
         }
 
         // Move top-left
@@ -657,10 +731,13 @@ class Bishop extends ChessPiece {
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
             
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }      
         }
 
 
@@ -673,10 +750,13 @@ class Bishop extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }      
         } 
 
         // Move bottom-right
@@ -689,10 +769,13 @@ class Bishop extends ChessPiece {
 
             const occupyingPieces = square.querySelector('.chessman');
             let occupyingColor = occupyingPieces ? occupyingPieces.getAttribute('color') : null;
-            if (occupyingPieces) break;
+            if (occupyingColor === this.color) break;
             if (color !== occupyingColor && !occupyingPieces ) {
                 moves.push(availableSpace);
-            } 
+            } else if (color !== occupyingColor && occupyingPieces) {
+                moves.push(availableSpace);
+                break;
+            }      
         }  
 
 

@@ -29,7 +29,7 @@
 .deadPieces .black, .deadPieces .white {
     display: grid;
     grid-template-columns: repeat(17, 23px);
-    border: solid 2px black;
+    border: solid 1px black;
     width: 400px;
 }
 
@@ -37,6 +37,7 @@
     grid-column: 1;
     grid-row: 1;
 }
+
 
 .deadPieces .white {
     grid-column: 1;
