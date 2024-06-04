@@ -159,7 +159,9 @@ class ChessGame {
     }
 
     renderPieces() {
+        
         this.pieces.forEach(piece => {
+            console.log("rendering pieces")
             const square = document.querySelector(`[data-notation="${piece.position}"]`);
             const pieceElement = document.createElement('img');
             pieceElement.classList.add("chessman");
@@ -278,14 +280,44 @@ class ChessGame {
                 const handleSelectedPiece = (piece) => {
                     selectedPiece = piece[0];
                     pieceValue = piece[1]
-                    console.log("Selected piece:", selectedPiece);
-                    console.log("pieceValue:", pieceValue);
-                    console.log("newSquare:", newSquare);
-                    console.log("color:", color);
+
+                    // Find the index of the promoted pawn in the pieces array
+                    const index = this.pieces.findIndex(piece => piece.type === 'Pawn' && piece.color === color && piece.position === newPosition);
+                    // If the index is found, remove the promoted pawn from the array
+                    if (index !== -1) {
+                        this.pieces.splice(index, 1);
+                    }
+
 
                 // Update pawn to selected piece
-                newSquare.innerHTML = `<img class="chessman" src="/chess_pieces/${color}-${selectedPiece.toLowerCase()}.png" piece="${selectedPiece}" color="${color}" draggable="true" value="${pieceValue}">`;
-                
+               newSquare.innerHTML = `<img class="chessman" src="/chess_pieces/${color}-${selectedPiece.toLowerCase()}.png" piece="${selectedPiece}" color="${color}" draggable="true" value="${pieceValue}">`;
+               console.log("pieces before promotion: ", this.pieces)
+               let newPiece;
+                switch (selectedPiece) {
+                    case 'Pawn':
+                        newPiece = new Pawn(color, newPosition);
+                        break;
+                    case 'Rook':
+                        newPiece = new Rook(color, newPosition);
+                        break;
+                    case 'Knight':
+                        newPiece = new Knight(color, newPosition);
+                        break;
+                    case 'Bishop':
+                        newPiece = new Bishop(color, newPosition);
+                        break;
+                    case 'Queen':
+                        newPiece = new Queen(color, newPosition);
+                        break;
+                    case 'King':
+                        newPiece = new King(color, newPosition);
+                        break;
+                    default:
+                        // Handle the case where selectedPiece is not recognized
+                }
+                this.pieces.push(newPiece);
+
+
                 // Add an event listener to the new piece
                 newSquare.querySelector(".chessman").addEventListener('click', (event) => {
                     this.handlePieceClick(event);
@@ -293,14 +325,15 @@ class ChessGame {
 
                     // Add the points for the promotion to the player's scoreboard
                     if (color === "white") {
-                        console.log("this.pieces.whiteScore:", piece);
-                        whiteScore += pieceValue;
+                        whiteScore += parseFloat(pieceValue);
                         document.querySelector(`.white`).querySelector(".score").innerHTML = whiteScore;
 
                     } else if (color === "black") {
-                        blackScore += pieceValue;
+                        blackScore += parseFloat(pieceValue);
                         document.querySelector(`.black`).querySelector(".score").innerHTML = blackScore;
                     }
+
+
 
                 };
                 
@@ -309,9 +342,7 @@ class ChessGame {
                         const piece = this.handlePieceClick(event);
                         if (piece) {
                             handleSelectedPiece(piece);
-                        } else {
-                            console.log(false);
-                        }})
+                        } })
                 });
    
 
@@ -334,6 +365,7 @@ class ChessGame {
 
         // Clear the space move highlights from the board
         this.board.clearHighlights()
+        console.log("cleared highlights");
 
         // Ensure the piece remains draggable and clickable
         pieceElement.setAttribute("draggable", true);
