@@ -101,6 +101,7 @@ class ChessGame {
     this.board.createBoard(); // Add this line to create the board
     this.renderPieces(); // Add this line to render the pieces on the board
     this.addEventListeners();
+    this.promotePawn;
     this.blackScore = 0;
     this.whiteScore = 0;
     }
@@ -185,6 +186,14 @@ class ChessGame {
         const pieceType = pieceElement.getAttribute("piece");
         const pieceColor = pieceElement.getAttribute("color");
         const piecePosition = pieceElement.parentElement.getAttribute("data-notation");
+        const isPromotion = event.target.parentElement.className === "promotionGrid" ? true : false;
+        let promotionReturn = [];
+
+        if (isPromotion) {
+            promotionReturn.push(event.target.getAttribute("piece"));
+            promotionReturn.push(parseFloat(event.target.getAttribute("value")));
+            return promotionReturn;
+        }
         
         // Find the corresponding piece object
         const piece = this.pieces.find(p => p.type === pieceType && p.color === pieceColor && p.position === piecePosition);
@@ -208,30 +217,109 @@ class ChessGame {
     
     }
 
+
+
+
+
     movePiece(piece, newPosition) {
+        const color = piece.color;
+        
         // Find the square where the piece was moved to
         const newSquare = document.querySelector(`[data-notation="${newPosition}"]`);
         const rival = newSquare.querySelector(".chessman");
-        let rivalColor = null;
+        let blackScore = this.blackScore;
+        let whiteScore = this.whiteScore;
+        let rivalColor = null;       
 
         if (rival) {
             rivalColor = rival.getAttribute("color");
            
            if (rivalColor !== piece.color) {
-            const grave = document.querySelector(`.deadPieces`).querySelector(`.${piece.color}`);
+            const grave = document.querySelector(`.deadPieces`).querySelector(`.${rivalColor}`);
             const rivalValue = parseFloat(rival.getAttribute("value"));
            grave.appendChild(rival)
            console.log(`You just won ${rivalValue} points!`);
          
          if (piece.color === "black") {
-            this.blackScore += rivalValue;
-            document.querySelector(`.black`).querySelector(".score").innerHTML = this.blackScore;
+            blackScore += rivalValue;
+            document.querySelector(`.black`).querySelector(".score").innerHTML = blackScore;
          } else if (piece.color === "white") {
-            this.whiteScore += rivalValue;
-            document.querySelector(`.white`).querySelector(".score").innerHTML = this.whiteScore;
+            whiteScore += rivalValue;
+            document.querySelector(`.white`).querySelector(".score").innerHTML = whiteScore;
          }
         }
         }
+
+        // Promote pawn when it gets to the final row opposite from starting position
+        if (piece.type === "Pawn") {
+            if (piece.color === "white" && parseFloat(parseFloat(newPosition[1])) === 8 || piece.color === "black" && (parseFloat(newPosition[1])) === 1) {
+                console.log("Time to promote your pawn!");
+                let promoteOptions = 
+                `
+                <div class="promotion">
+                    <h3 style="grid-row: 1; grid-column: 2; justify-content: center; display: flex">Promote your pawn</h3>
+                    <div class="promotionGrid">
+                        <img class="chessman" src="/chess_pieces/${piece.color}-queen.png" piece="Queen" color="${piece.color}" draggable="true" value="9">
+                        <img class="chessman" src="/chess_pieces/${piece.color}-rook.png" piece="Rook" color="${piece.color}" draggable="true" value="5">
+                        <img class="chessman" src="/chess_pieces/${piece.color}-knight.png" piece="Knight" color="${piece.color}" draggable="true" value="3">
+                        <img class="chessman" src="/chess_pieces/${piece.color}-bishop.png" piece="Bishop" color="${piece.color}" draggable="true" value="3">
+                    </div>
+                </div>
+                `
+
+                const promoPieces = document.querySelector(".promoPieces");
+                promoPieces.innerHTML = promoteOptions;
+
+                // add click event to promotion piece options
+                const chessmen = promoPieces.querySelectorAll(".chessman");
+                let selectedPiece = "";
+                let pieceValue = "";
+
+                const handleSelectedPiece = (piece) => {
+                    selectedPiece = piece[0];
+                    pieceValue = piece[1]
+                    console.log("Selected piece:", selectedPiece);
+                    console.log("pieceValue:", pieceValue);
+                    console.log("newSquare:", newSquare);
+                    console.log("color:", color);
+
+                // Update pawn to selected piece
+                newSquare.innerHTML = `<img class="chessman" src="/chess_pieces/${color}-${selectedPiece.toLowerCase()}.png" piece="${selectedPiece}" color="${color}" draggable="true" value="${pieceValue}">`;
+                
+                // Add an event listener to the new piece
+                newSquare.querySelector(".chessman").addEventListener('click', (event) => {
+                    this.handlePieceClick(event);
+                })
+
+                    // Add the points for the promotion to the player's scoreboard
+                    if (color === "white") {
+                        console.log("this.pieces.whiteScore:", piece);
+                        whiteScore += pieceValue;
+                        document.querySelector(`.white`).querySelector(".score").innerHTML = whiteScore;
+
+                    } else if (color === "black") {
+                        blackScore += pieceValue;
+                        document.querySelector(`.black`).querySelector(".score").innerHTML = blackScore;
+                    }
+
+                };
+                
+                chessmen.forEach( chessman => {
+                    chessman.addEventListener('click', (event) => {
+                        const piece = this.handlePieceClick(event);
+                        if (piece) {
+                            handleSelectedPiece(piece);
+                        } else {
+                            console.log(false);
+                        }})
+                });
+   
+
+
+        }
+    }
+
+        
 
 
 
