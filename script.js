@@ -104,7 +104,9 @@ class ChessGame {
     this.promotePawn;
     this.blackScore = 0;
     this.whiteScore = 0;
+    this.rooks = this.pieces.filter(piece => piece instanceof Rook) // Filter out only the Rooks
     }
+
 
 
 
@@ -161,7 +163,6 @@ class ChessGame {
     renderPieces() {
         
         this.pieces.forEach(piece => {
-            console.log("rendering pieces")
             const square = document.querySelector(`[data-notation="${piece.position}"]`);
             const pieceElement = document.createElement('img');
             pieceElement.classList.add("chessman");
@@ -201,9 +202,17 @@ class ChessGame {
         const piece = this.pieces.find(p => p.type === pieceType && p.color === pieceColor && p.position === piecePosition);
         
         if (piece) {
-            let position1 = piecePosition;
+
             this.board.clearHighlights();
             const moves = piece.getAvailableMoves(this.board);
+            if (piece.type === "King") {
+                let addMoves = this.castleKing(piece);
+                if (addMoves) {
+                    addMoves.forEach(move => {
+                        moves.push(move)
+                    })
+                }
+            }
             this.board.highlightMoves(moves, piece.color);
             moves.forEach(move => {
                 const targetSquare = document.querySelector(`[data-notation="${move}"] .available`);
@@ -211,7 +220,7 @@ class ChessGame {
                     targetSquare.addEventListener('click', () => this.movePiece(piece, move));
                 }
             });
- 
+
         }
 
         
@@ -220,7 +229,27 @@ class ChessGame {
     }
 
 
+    castleKing(piece) {
+        let addMoves = piece.castle()
+        let rooksAvailable = false;
 
+        console.log("castleLaneAvailable: ", piece.castleLaneAvailable);
+        console.log("past moves",piece.pastMoves);
+        
+        // Access the pastMoves of the rooks
+        this.rooks.forEach(rook => {
+        if (rook.color === piece.color && rook.pastMoves === 0) {
+            rooksAvailable = true;
+            console.log("rook past moves: ", rook.pastMoves);
+        }
+        })
+
+        if (piece.type === "King" && piece.castleLaneAvailable === true && piece.pastMoves === 0 && rooksAvailable) {
+            console.log("The king may castle");
+            console.log("addMoves: ",addMoves);
+            return addMoves
+        }
+    }
 
 
     movePiece(piece, newPosition) {
@@ -229,8 +258,6 @@ class ChessGame {
         // Find the square where the piece was moved to
         const newSquare = document.querySelector(`[data-notation="${newPosition}"]`);
         const rival = newSquare.querySelector(".chessman");
-        let blackScore = this.blackScore;
-        let whiteScore = this.whiteScore;
         let rivalColor = null;       
 
         if (rival) {
@@ -241,13 +268,14 @@ class ChessGame {
             const rivalValue = parseFloat(rival.getAttribute("value"));
            grave.appendChild(rival)
            console.log(`You just won ${rivalValue} points!`);
+
          
          if (piece.color === "black") {
-            blackScore += rivalValue;
-            document.querySelector(`.black`).querySelector(".score").innerHTML = blackScore;
+            this.blackScore += rivalValue;
+            document.querySelector(`.black`).querySelector(".score").innerHTML = this.blackScore;
          } else if (piece.color === "white") {
-            whiteScore += rivalValue;
-            document.querySelector(`.white`).querySelector(".score").innerHTML = whiteScore;
+            this.whiteScore += rivalValue;
+            document.querySelector(`.white`).querySelector(".score").innerHTML = this.whiteScore;
          }
         }
         }
@@ -255,7 +283,6 @@ class ChessGame {
         // Promote pawn when it gets to the final row opposite from starting position
         if (piece.type === "Pawn") {
             if (piece.color === "white" && parseFloat(parseFloat(newPosition[1])) === 8 || piece.color === "black" && (parseFloat(newPosition[1])) === 1) {
-                console.log("Time to promote your pawn!");
                 let promoteOptions = 
                 `
                 <div class="promotion">
@@ -291,7 +318,6 @@ class ChessGame {
 
                 // Update pawn to selected piece
                newSquare.innerHTML = `<img class="chessman" src="/chess_pieces/${color}-${selectedPiece.toLowerCase()}.png" piece="${selectedPiece}" color="${color}" draggable="true" value="${pieceValue}">`;
-               console.log("pieces before promotion: ", this.pieces)
                let newPiece;
                 switch (selectedPiece) {
                     case 'Pawn':
@@ -325,12 +351,12 @@ class ChessGame {
 
                     // Add the points for the promotion to the player's scoreboard
                     if (color === "white") {
-                        whiteScore += parseFloat(pieceValue);
-                        document.querySelector(`.white`).querySelector(".score").innerHTML = whiteScore;
+                        this.whiteScore += parseFloat(pieceValue);
+                        document.querySelector(`.white`).querySelector(".score").innerHTML = this.whiteScore;
 
                     } else if (color === "black") {
-                        blackScore += parseFloat(pieceValue);
-                        document.querySelector(`.black`).querySelector(".score").innerHTML = blackScore;
+                        this.blackScore += parseFloat(pieceValue);
+                        document.querySelector(`.black`).querySelector(".score").innerHTML = this.blackScore;
                     }
 
 
@@ -350,10 +376,6 @@ class ChessGame {
         }
     }
 
-        
-
-
-
         // Remove the piece from its old square
         const oldSquare = document.querySelector(`[data-notation="${piece.position}"]`);
         const pieceElement = oldSquare.querySelector('.chessman');
@@ -365,23 +387,24 @@ class ChessGame {
 
         // Clear the space move highlights from the board
         this.board.clearHighlights()
-        console.log("cleared highlights");
 
         // Ensure the piece remains draggable and clickable
         pieceElement.setAttribute("draggable", true);
 
-
+        // Update the number of past moves within the subclass of the piece moved
+        piece.addMove();      
+       
     }
     
 }
 
 class ChessPiece {
-    constructor(type, color, position, value) {
+    constructor(type, color, position, value, pastMoves = 0) {
         this.type = type;
         this.color = color;
         this.position = position;
-        this.pastMoves = 0;
         this.value = value;
+        this.pastMoves = pastMoves;
  
     }
 
@@ -391,6 +414,10 @@ class ChessPiece {
         this.render();
     }
 
+    // This function records how many times the piece has moved. It is called from the ChessPiece.movePiece() function.
+    addMove() {
+        this.pastMoves += 1;
+    }
 
 
     render() {
@@ -492,16 +519,24 @@ class Pawn extends ChessPiece {
 }
 
 class King extends ChessPiece {
-    constructor(color, position) {
-        super('King', color, position);
+    constructor(color, position, pastMoves) {
+        super('King', color, position, pastMoves);
         this.value = null;
+        this.castleLaneLeft = [];
+        this.castleLaneRight = [];
+        this.castleLaneAvailable = false;
+        this.leftCastleSquares = true;
+        this.rightCastleSquares = true;
+        
     }
 
     getAvailableMoves(board) {
         let moves = [];
         let row =  parseInt(this.position[1]);
         let column = convertPosition(this.position[0]);
-        
+
+    
+
         const directions = {
             white: {
                 top: `${column}${row+1}`,
@@ -524,7 +559,10 @@ class King extends ChessPiece {
                 right: `${column-1}${row}`
             }
         }
+
         
+
+                
         // This shows where the piece can move on the board
             for (let direction in directions[this.color]) {
                 moves.push(directions[this.color][direction])
@@ -542,11 +580,70 @@ class King extends ChessPiece {
             })
 
             moves = newMoves;
-
+            
             return moves;
+
+        }
+
+        castle() {
+            let addMoves = [];
+            // Add the squares required to be available to the castleLane array for the corresponding color
+        if ( this.color === "white") {
+            this.castleLaneLeft.push('b1');
+            this.castleLaneLeft.push('c1');
+            this.castleLaneLeft.push('d1');
+            this.castleLaneRight.push('f1');
+            this.castleLaneRight.push('g1');
+        } else if (this.color === "black") {
+            this.castleLaneLeft.push('b8');
+            this.castleLaneLeft.push('c8');
+            this.castleLaneLeft.push('d8');
+            this.castleLaneRight.push('f8');
+            this.castleLaneRight.push('g8');
+        }
+
+        // Check to see if all left castleLane squares are available
+        this.castleLaneLeft.forEach(square => {
+            let squareInfo = document.querySelector(`[data-notation="${square}"]`).querySelector('.chessman');
+            if (squareInfo) {this.leftCastleSquares = false}
+        })
+
+        // Check to see if all right castleLane squares are available
+        this.castleLaneRight.forEach(square => {
+            let squareInfo = document.querySelector(`[data-notation="${square}"]`).querySelector('.chessman');
+            if (squareInfo) {this.rightCastleSquares = false}
+        })
+
+
+        // If either of the castle side squares are open, set castleLaneAvailable to true
+        if (this.leftCastleSquares || this.rightCastleSquares) {
+            this.castleLaneAvailable = true;
         }
 
 
+        if (this.leftCastleSquares) {
+            if (this.color === "white") {
+                addMoves.push('c1');
+            } else if (this.color === "black") {
+                addMoves.push('c8')
+            }
+        }
+        if (this.rightCastleSquares) {
+            if (this.color === "white") {
+                addMoves.push('g1');
+            } else if (this.color === "black") {
+                addMoves.push('g8')
+            }
+        }
+
+        // Reset the castleLane arrays and statuses
+        this.castleLaneLeft = [];
+        this.castleLaneRight = [];
+        this.leftCastleSquares = true;
+        this.rightCastleSquares = true;
+
+        return addMoves;
+        }
     
 
 
